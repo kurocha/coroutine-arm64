@@ -21,18 +21,22 @@ const size_t COROUTINE_REGISTERS = 0xb0 / 8;
 typedef struct
 {
 	void **stack_pointer;
-} coroutine_context;
+	void *argument;
+} CoroutineContext;
 
-typedef COROUTINE(* coroutine_start)(coroutine_context *from, coroutine_context *self);
+typedef COROUTINE(* CoroutineStart)(CoroutineContext *from, CoroutineContext *self);
 
 static inline void coroutine_initialize(
-	coroutine_context *context,
-	coroutine_start start,
+	CoroutineContext *context,
+	CoroutineStart start,
+	void *argument,
 	void *stack_pointer,
 	size_t stack_size
 ) {
 	/* Force 16-byte alignment */
 	context->stack_pointer = (void**)((uintptr_t)stack_pointer & ~0xF);
+
+	context->argument = argument;
 
 	if (!start) {
 		assert(!context->stack_pointer);
@@ -46,9 +50,9 @@ static inline void coroutine_initialize(
 	context->stack_pointer[0xa0 / 8] = (void*)start;
 }
 
-coroutine_context * coroutine_transfer(coroutine_context * current, coroutine_context * target);
+CoroutineContext * coroutine_transfer(CoroutineContext * current, CoroutineContext * target);
 
-static inline void coroutine_destroy(coroutine_context * context)
+static inline void coroutine_destroy(CoroutineContext * context)
 {
 }
 

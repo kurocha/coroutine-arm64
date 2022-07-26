@@ -13,23 +13,16 @@ end
 
 # Build Targets
 
-define_target 'coroutine-library-arm64' do |target|
-	target.build do
-		source_root = target.package.path + 'source'
-		copy headers: source_root.glob('Coroutine/**/*.{h,hpp}')
-		build static_library: 'Coroutine', source_files: source_root.glob('Coroutine/**/*.{s,cpp}')
-	end
-	
-	target.depends 'Build/Files'
-	target.depends 'Build/Clang'
-	
-	target.depends :platform
-	target.depends 'Language/C++14', private: true
+define_target 'coroutine-library-amd64' do |target|
+	target.depends 'Language/C++14'
 	
 	target.provides 'Library/Coroutine' do
-		append linkflags [
-			->{install_prefix + 'lib/libCoroutine.a'},
-		]
+		source_root = target.package.path + 'source'
+		
+		library_path = build static_library: 'Coroutine', source_files: source_root.glob('Coroutine/**/*.{s,cpp}')
+
+		append linkflags library_path
+		append header_search_paths source_root
 	end
 end
 
